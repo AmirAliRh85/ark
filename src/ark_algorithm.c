@@ -1,14 +1,14 @@
-#include "./Utils.h"
+#include "../ark.h"
 
 #define DEFAULT_DYNAMIC_ARRAY_CAPACITY  10
 
 
-hrt_DynamicArray* hrt_DynamicArray_create(int sizeof_obj)
+ark_DynamicArray* ark_DynamicArray_create(int sizeof_obj)
 {
     if (sizeof_obj <= 0)
         return NULL;
 
-    hrt_DynamicArray* da = (hrt_DynamicArray*)malloc(sizeof(hrt_DynamicArray));
+    ark_DynamicArray* da = (ark_DynamicArray*)malloc(sizeof(ark_DynamicArray));
     if (!da)
         return NULL;
 
@@ -20,38 +20,38 @@ hrt_DynamicArray* hrt_DynamicArray_create(int sizeof_obj)
     return da;
 }
 
-void hrt_DynamicArray_push(hrt_DynamicArray* da , const void* src)
+void ark_DynamicArray_push(ark_DynamicArray* da , const void* src)
 {
     if (da->currentIdx >= da->capacity)
-        hrt_DynamicArray_resize(da);
+        ark_DynamicArray_resize(da);
 
     memcpy((char*)da->objectAddress + da->currentIdx * da->elementSize , src , da->elementSize);
 
     da->currentIdx += 1;
 }
 
-void hrt_DynamicArray_pop(hrt_DynamicArray* da)
+void ark_DynamicArray_pop(ark_DynamicArray* da)
 {
     if (da->currentIdx > 0)
         da->currentIdx -= 1;
 }
 
-void hrt_DynamicArray_remove(hrt_DynamicArray* da , int index)
+void ark_DynamicArray_remove(ark_DynamicArray* da , int index)
 {
     if (index == da->currentIdx - 1)
-        hrt_DynamicArray_pop(da);
+        ark_DynamicArray_pop(da);
 
     if (index >= da->currentIdx || index < 0)
         return;
 
-    void* dst = hrt_DynamicArray_at(da , index);
-    void* src = hrt_DynamicArray_at(da , index + 1);
+    void* dst = ark_DynamicArray_at(da , index);
+    void* src = ark_DynamicArray_at(da , index + 1);
 
     memcpy(dst , src , (da->currentIdx - (index + 1)) * da->elementSize);
     da->currentIdx -= 1;
 }
 
-void hrt_DynamicArray_resize(hrt_DynamicArray* da)
+void ark_DynamicArray_resize(ark_DynamicArray* da)
 {
     int new_capacity = da->capacity * 2;
 
@@ -63,7 +63,7 @@ void hrt_DynamicArray_resize(hrt_DynamicArray* da)
     da->objectAddress = new_size;
 }
 
-void hrt_DynamicArray_destroy(hrt_DynamicArray* da)
+void ark_DynamicArray_destroy(ark_DynamicArray* da)
 {
     if (!da->objectAddress)
         free(da->objectAddress);
@@ -72,7 +72,7 @@ void hrt_DynamicArray_destroy(hrt_DynamicArray* da)
 }
 
 
-void* hrt_DynamicArray_at(hrt_DynamicArray* da , int index)
+void* ark_DynamicArray_at(ark_DynamicArray* da , int index)
 {
     if (index >= 0 && index < da->currentIdx)
         return ((char*)da->objectAddress + (index * da->elementSize));
@@ -80,22 +80,22 @@ void* hrt_DynamicArray_at(hrt_DynamicArray* da , int index)
         return NULL;
 }
 
-int hrt_DynamicArray_length(hrt_DynamicArray* da)
+int ark_DynamicArray_length(ark_DynamicArray* da)
 {
     return da->currentIdx;
 }
 
-int hrt_DynamicArray_capacity(hrt_DynamicArray* da)
+int ark_DynamicArray_capacity(ark_DynamicArray* da)
 {
     return da->capacity;
 }
 
-int hrt_DynamicArray_find(hrt_DynamicArray* da , const void* val)
+int ark_DynamicArray_find(ark_DynamicArray* da , const void* val)
 {
-    int len = hrt_DynamicArray_length(da);
+    int len = ark_DynamicArray_length(da);
     for (unsigned int i = 0 ; i < len ; i++)
     {
-        void* curr_val = hrt_DynamicArray_at(da , i);
+        void* curr_val = ark_DynamicArray_at(da , i);
         if (memcmp(val , curr_val , da->elementSize) == 0)
             return i;
     }
@@ -105,12 +105,12 @@ int hrt_DynamicArray_find(hrt_DynamicArray* da , const void* val)
 
 
 
-hrt_Pair* hrt_Pair_create(int sizeof_first_item , int sizeof_second_item)
+ark_Pair* ark_Pair_create(int sizeof_first_item , int sizeof_second_item)
 {
     if (sizeof_first_item <= 0 || sizeof_second_item <= 0)
         return NULL;
 
-    hrt_Pair* p = (hrt_Pair*)malloc(sizeof(hrt_Pair));
+    ark_Pair* p = (ark_Pair*)malloc(sizeof(ark_Pair));
 
     if (!p)        
         return NULL;
@@ -118,7 +118,7 @@ hrt_Pair* hrt_Pair_create(int sizeof_first_item , int sizeof_second_item)
     p->firstItemSize = sizeof_first_item;
     p->secondItemSize = sizeof_second_item;
     p->elementSize = p->firstItemSize + p->secondItemSize;
-    p->dArray = hrt_DynamicArray_create(p->elementSize);
+    p->dArray = ark_DynamicArray_create(p->elementSize);
 
     if (p->dArray == NULL)
     {
@@ -129,13 +129,13 @@ hrt_Pair* hrt_Pair_create(int sizeof_first_item , int sizeof_second_item)
     return p;
 }
 
-void hrt_Pair_push(hrt_Pair* p , void* first_item , void* second_item)
+void ark_Pair_push(ark_Pair* p , void* first_item , void* second_item)
 {
     if (!p || !first_item || !second_item)
         return;
 
     if (p->dArray->currentIdx >= p->dArray->capacity)
-        hrt_DynamicArray_resize(p->dArray);
+        ark_DynamicArray_resize(p->dArray);
 
     void* dest = (char*)p->dArray->objectAddress + p->dArray->elementSize * p->dArray->currentIdx;
     if (!dest) return;
@@ -146,24 +146,24 @@ void hrt_Pair_push(hrt_Pair* p , void* first_item , void* second_item)
     p->dArray->currentIdx += 1;
 }
 
-void hrt_Pair_pop(hrt_Pair* p)
+void ark_Pair_pop(ark_Pair* p)
 {
     if (p && p->dArray)
-        hrt_DynamicArray_pop(p->dArray);
+        ark_DynamicArray_pop(p->dArray);
 }
 
-void hrt_Pair_destroy(hrt_Pair* p)
+void ark_Pair_destroy(ark_Pair* p)
 {
-    hrt_DynamicArray_destroy(p->dArray);
+    ark_DynamicArray_destroy(p->dArray);
     free(p);
 }
 
-void* hrt_Pair_at(hrt_Pair* p , int index , hrt_PairFlag flag)
+void* ark_Pair_at(ark_Pair* p , int index , ark_PairFlag flag)
 {
     if (index < 0 || index >= p->dArray->currentIdx)
         return NULL;
 
-    void* object_addres = hrt_DynamicArray_at(p->dArray , index);
+    void* object_addres = ark_DynamicArray_at(p->dArray , index);
 
     if (flag == FIRST)
         return object_addres;
@@ -171,11 +171,11 @@ void* hrt_Pair_at(hrt_Pair* p , int index , hrt_PairFlag flag)
     return (char*)object_addres + p->firstItemSize;
 }
 
-int hrt_Pair_length(hrt_Pair* p)
+int ark_Pair_length(ark_Pair* p)
 {
     return p->dArray->currentIdx;
 }
-int hrt_Pair_capacity(hrt_Pair* p)
+int ark_Pair_capacity(ark_Pair* p)
 {
     return p->dArray->capacity;
 }

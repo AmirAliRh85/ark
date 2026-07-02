@@ -1,25 +1,25 @@
-#include "./Utils.h"
+#include "../ark.h"
 #include <stdio.h>
 
 #define HRT_DEBUG
 #define HRT_AUTO_FREE
 
 
-hrt_ResourceTracker ResourceTracker;
+ark_ResourceTracker ResourceTracker;
 
 
-typedef struct hrt_Object
+typedef struct ark_Object
 {
     const char* name;
     void* address;
     int size;
-} hrt_Object;
+} ark_Object;
 
 
-void hrt_ResouceTracker_create()
+void ark_ResouceTracker_create()
 {
     #ifdef HRT_DEBUG
-        ResourceTracker.addressAllocated = hrt_DynamicArray_create(sizeof(hrt_Object));
+        ResourceTracker.addressAllocated = ark_DynamicArray_create(sizeof(ark_Object));
         ResourceTracker.memAllocated = 0;
     #else
         #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
@@ -27,7 +27,7 @@ void hrt_ResouceTracker_create()
     #endif
 }
 
-void* hrt_malloc(size_t _size , const char* _name)
+void* ark_malloc(size_t _size , const char* _name)
 {
     void* _memory = malloc(_size);
 
@@ -39,14 +39,14 @@ void* hrt_malloc(size_t _size , const char* _name)
         }
         else
         {
-            hrt_Object obj;
+            ark_Object obj;
 
             ResourceTracker.memAllocated += _size;
             obj.name = _name;
             obj.size = _size;
             obj.address = _memory;
 
-            hrt_DynamicArray_push(ResourceTracker.addressAllocated , &obj);
+            ark_DynamicArray_push(ResourceTracker.addressAllocated , &obj);
 
             printf("[info] Memory got allocated for %s\n" , _name);
         }
@@ -57,16 +57,16 @@ void* hrt_malloc(size_t _size , const char* _name)
     return _memory;
 }
 
-void hrt_free(void* _memory)
+void ark_free(void* _memory)
 {
     #ifdef HRT_DEBUG
         int idx = -1;
-        int len = hrt_DynamicArray_length(ResourceTracker.addressAllocated);
-        hrt_Object obj;
+        int len = ark_DynamicArray_length(ResourceTracker.addressAllocated);
+        ark_Object obj;
 
         for (int i = 0 ; i < len ; i++)
         {
-            obj = *(hrt_Object*)hrt_DynamicArray_at(ResourceTracker.addressAllocated , i);
+            obj = *(ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , i);
 
             if (obj.address == _memory)
             {
@@ -81,13 +81,13 @@ void hrt_free(void* _memory)
         }
         else
         {
-            obj = *(hrt_Object*)hrt_DynamicArray_at(ResourceTracker.addressAllocated , idx);
+            obj = *(ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , idx);
 
             printf("[info] %s got freed at %0x with size %i\n" , obj.name , obj.address , obj.size);
             
             ResourceTracker.memAllocated -= obj.size;
             
-            hrt_DynamicArray_remove(ResourceTracker.addressAllocated , idx);
+            ark_DynamicArray_remove(ResourceTracker.addressAllocated , idx);
             free(_memory);
         }
     #else
@@ -96,18 +96,18 @@ void hrt_free(void* _memory)
     #endif
 }
 
-void hrt_memDebug()
+void ark_memDebug()
 {
     #ifdef HRT_DEBUG
-        int len = hrt_DynamicArray_length(ResourceTracker.addressAllocated);
-        hrt_Object* obj;
+        int len = ark_DynamicArray_length(ResourceTracker.addressAllocated);
+        ark_Object* obj;
 
         printf("========== memDebug ==========\n");
         printf("total memory allocated: %i\n" , ResourceTracker.memAllocated);
         
         for (int i = 0 ; i < len ; i++)
         {
-            obj = (hrt_Object*)hrt_DynamicArray_at(ResourceTracker.addressAllocated , i);
+            obj = (ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , i);
             printf("%-20s 0x%-20x %i\n" , obj->name , obj->address , obj->size);
         }
     #else
@@ -115,31 +115,31 @@ void hrt_memDebug()
     #endif
 }
 
-void hrt_ResouceTracker_destroy()
+void ark_ResouceTracker_destroy()
 {
     #ifdef HRT_DEBUG
-        hrt_memDebug();
+        ark_memDebug();
         
         #ifdef HRT_AUTO_FREE
             if (ResourceTracker.memAllocated > 0)
             {
-                int len = hrt_DynamicArray_length(ResourceTracker.addressAllocated);
+                int len = ark_DynamicArray_length(ResourceTracker.addressAllocated);
 
-                hrt_Object obj;
+                ark_Object obj;
                 for (int i = len - 1 ; i >= 0 ; i--)
                 {
-                    obj = *(hrt_Object*)hrt_DynamicArray_at(ResourceTracker.addressAllocated , i);
-                    hrt_free(obj.address);
-                    hrt_DynamicArray_pop(ResourceTracker.addressAllocated);
+                    obj = *(ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , i);
+                    ark_free(obj.address);
+                    ark_DynamicArray_pop(ResourceTracker.addressAllocated);
                 }
 
                 printf("[info] remaining allocated memory got freed\n");
             }
 
-            hrt_memDebug();
+            ark_memDebug();
         #endif
 
-        hrt_DynamicArray_destroy(ResourceTracker.addressAllocated);
+        ark_DynamicArray_destroy(ResourceTracker.addressAllocated);
         ResourceTracker.memAllocated = 0;
     #else
         #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
