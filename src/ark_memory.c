@@ -1,11 +1,8 @@
 #include "../ark.h"
 #include <stdio.h>
 
-#define HRT_DEBUG
-#define HRT_AUTO_FREE
-
-
-ark_ResourceTracker ResourceTracker;
+#define ARK_MEMORY
+#define ARK_MEMORY_AUTO_FREE
 
 
 typedef struct ark_Object
@@ -16,57 +13,83 @@ typedef struct ark_Object
 } ark_Object;
 
 
-void ark_ResouceTracker_create()
+static void ark_memDebug(ark_MemoryManager* mem_manager)
 {
-    #ifdef HRT_DEBUG
-        ResourceTracker.addressAllocated = ark_DynamicArray_create(sizeof(ark_Object));
-        ResourceTracker.memAllocated = 0;
+    int len = ark_DynamicArray_length(mem_manager->addressAllocated);
+
+    printf("========== Info ==========\n");
+    for (int i = 0 ; i < len ; i++)
+    {
+        ark_Object obj = *(ark_Object*)ark_DynamicArray_at(mem_manager->addressAllocated , i);
+        printf("%0x , %s , %i\n" , obj.address , obj.name , obj.size);
+    }
+    printf("==========================\n");
+
+}
+
+ark_MemoryManager* ark_MemoryManager_create(char* log)
+{
+    #ifdef ARK_MEMORY
+        ark_MemoryManager* mem_manager = (ark_MemoryManager*)malloc(sizeof(ark_MemoryManager));
+        mem_manager->addressAllocated = ark_DynamicArray_create(sizeof(ark_Object));
+        
+        if (!mem_manager || !mem_manager->addressAllocated)
+            return NULL;
+
+        mem_manager->memAllocated = 0;
+        mem_manager->log = log;
+
+        return mem_manager;
     #else
-        #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
-        return;
+        #warning "debug mode is not enabled either define ARK_MEMORY in your file or just add -DARK_MEMORY compile flag"
+        return NULL;
     #endif
 }
 
-void* ark_malloc(size_t _size , const char* _name)
+void* ark_malloc(ark_MemoryManager* mem_manager , size_t _size , const char* _name)
 {
     void* _memory = malloc(_size);
 
-    #ifdef HRT_DEBUG
+    #ifdef ARK_MEMORY
+        char buff[128];
+
         if (!_memory)
         {
-            printf("[error] Failed to allocate memory for%s\n" , _name);
+            sprintf(buff , "[ERROR] Failed to allocate memory for %s\n" , _name);
+            strcat(mem_manager->log , buff);
             return NULL;
         }
         else
         {
             ark_Object obj;
 
-            ResourceTracker.memAllocated += _size;
+            mem_manager->memAllocated += _size;
             obj.name = _name;
             obj.size = _size;
             obj.address = _memory;
 
-            ark_DynamicArray_push(ResourceTracker.addressAllocated , &obj);
+            ark_DynamicArray_push(mem_manager->addressAllocated , &obj);
 
-            printf("[info] Memory got allocated for %s\n" , _name);
+            sprintf(buff , "[INFO] %i bytes of memory got allocated for \"%s\"\n" , _size , _name);
+            strcat(mem_manager->log , buff);
         }
     #else
-        #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
+        #warning "debug mode is not enabled either define ARK_MEMORY in your file or just add -DARK_MEMORY compile flag"
     #endif
 
     return _memory;
 }
 
-void ark_free(void* _memory)
+void ark_free(ark_MemoryManager* mem_manager , void* _memory)
 {
-    #ifdef HRT_DEBUG
+    #ifdef ARK_MEMORY
         int idx = -1;
-        int len = ark_DynamicArray_length(ResourceTracker.addressAllocated);
+        int len = ark_DynamicArray_length(mem_manager->addressAllocated);
         ark_Object obj;
 
         for (int i = 0 ; i < len ; i++)
         {
-            obj = *(ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , i);
+            obj = *(ark_Object*)ark_DynamicArray_at(mem_manager->addressAllocated , i);
 
             if (obj.address == _memory)
             {
@@ -77,71 +100,55 @@ void ark_free(void* _memory)
 
         if (idx < 0)
         {
-            printf("[warning] You either have freed it once or you are freeing a non valid address\n");
+            strcat(mem_manager->log , "[WARNING] You either have freed it once or you are freeing a non valid address\n");
         }
         else
         {
-            obj = *(ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , idx);
+            char buff[128];
+            obj = *(ark_Object*)ark_DynamicArray_at(mem_manager->addressAllocated , idx);
 
-            printf("[info] %s got freed at %0x with size %i\n" , obj.name , obj.address , obj.size);
+            sprintf(buff , "[INFO] \"%s\" got freed at %0x with size of %i bytes\n" , obj.name , obj.address , obj.size);
+            strcat(mem_manager->log , buff);
             
-            ResourceTracker.memAllocated -= obj.size;
+            mem_manager->memAllocated -= obj.size;
             
-            ark_DynamicArray_remove(ResourceTracker.addressAllocated , idx);
+            ark_memDebug(mem_manager);
+            ark_DynamicArray_remove(mem_manager->addressAllocated , idx);
             free(_memory);
+            ark_memDebug(mem_manager);
         }
     #else
-        #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
+        #warning "debug mode is not enabled either define ARK_MEMORY in your file or just add -DARK_MEMORY compile flag"
         free(_memory);
     #endif
 }
 
-void ark_memDebug()
+void ark_MemoryManager_destroy(ark_MemoryManager* mem_manager)
 {
-    #ifdef HRT_DEBUG
-        int len = ark_DynamicArray_length(ResourceTracker.addressAllocated);
-        ark_Object* obj;
-
-        printf("========== memDebug ==========\n");
-        printf("total memory allocated: %i\n" , ResourceTracker.memAllocated);
-        
-        for (int i = 0 ; i < len ; i++)
-        {
-            obj = (ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , i);
-            printf("%-20s 0x%-20x %i\n" , obj->name , obj->address , obj->size);
-        }
-    #else
-        #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
-    #endif
-}
-
-void ark_ResouceTracker_destroy()
-{
-    #ifdef HRT_DEBUG
-        ark_memDebug();
-        
-        #ifdef HRT_AUTO_FREE
-            if (ResourceTracker.memAllocated > 0)
+    #ifdef ARK_MEMORY
+        #ifdef ARK_MEMORY_AUTO_FREE
+            if (mem_manager->memAllocated > 0)
             {
-                int len = ark_DynamicArray_length(ResourceTracker.addressAllocated);
+                strcat(mem_manager->log , "[WARNING] There are still some object that has not been freed\n");
+
+                int len = ark_DynamicArray_length(mem_manager->addressAllocated);
 
                 ark_Object obj;
                 for (int i = len - 1 ; i >= 0 ; i--)
                 {
-                    obj = *(ark_Object*)ark_DynamicArray_at(ResourceTracker.addressAllocated , i);
-                    ark_free(obj.address);
-                    ark_DynamicArray_pop(ResourceTracker.addressAllocated);
+                    obj = *(ark_Object*)ark_DynamicArray_at(mem_manager->addressAllocated , i);
+                    ark_free(mem_manager , obj.address);
+                    ark_DynamicArray_pop(mem_manager->addressAllocated);
                 }
 
-                printf("[info] remaining allocated memory got freed\n");
+                strcat(mem_manager->log , "[INFO] Remaining allocated memory got freed\n");
             }
-
-            ark_memDebug();
         #endif
 
-        ark_DynamicArray_destroy(ResourceTracker.addressAllocated);
-        ResourceTracker.memAllocated = 0;
+        ark_DynamicArray_destroy(mem_manager->addressAllocated);
+        mem_manager->memAllocated = 0;
+        mem_manager->log = NULL;
     #else
-        #warning "debug mode is not enabled either define HRT_DEBUG in your file or just add -DHRT_DEBUG compile flag"
+        #warning "debug mode is not enabled either define ARK_MEMORY in your file or just add -DARK_MEMORY compile flag"
     #endif
 }
