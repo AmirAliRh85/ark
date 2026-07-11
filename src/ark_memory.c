@@ -55,8 +55,12 @@ void* ark_malloc(ark_MemoryManager* mem_manager , size_t _size , const char* _na
 
         if (!_memory)
         {
-            sprintf(buff , "[ERROR] Failed to allocate memory for %s\n" , _name);
-            strcat(mem_manager->log , buff);
+            if (!mem_manager->log)
+            {
+                sprintf(buff , "[ERROR] Failed to allocate memory for %s\n" , _name);
+                strcat(mem_manager->log , buff);
+            }
+
             return NULL;
         }
         else
@@ -70,8 +74,11 @@ void* ark_malloc(ark_MemoryManager* mem_manager , size_t _size , const char* _na
 
             ark_DynamicArray_push(mem_manager->addressAllocated , &obj);
 
-            sprintf(buff , "[INFO] %i bytes of memory got allocated for \"%s\"\n" , _size , _name);
-            strcat(mem_manager->log , buff);
+            if (!mem_manager->log)
+            {
+                sprintf(buff , "[INFO] %i bytes of memory got allocated for \"%s\"\n" , _size , _name);
+                strcat(mem_manager->log , buff);
+            }
         }
     #else
         #warning "debug mode is not enabled either define ARK_MEMORY in your file or just add -DARK_MEMORY compile flag"
@@ -100,15 +107,19 @@ void ark_free(ark_MemoryManager* mem_manager , void* _memory)
 
         if (idx < 0)
         {
-            strcat(mem_manager->log , "[WARNING] You either have freed it once or you are freeing a non valid address\n");
+            if (!mem_manager->log)
+                strcat(mem_manager->log , "[WARNING] You either have freed it once or you are freeing a non valid address\n");
         }
         else
         {
             char buff[128];
             obj = *(ark_Object*)ark_DynamicArray_at(mem_manager->addressAllocated , idx);
 
-            sprintf(buff , "[INFO] \"%s\" got freed at %0x with size of %i bytes\n" , obj.name , obj.address , obj.size);
-            strcat(mem_manager->log , buff);
+            if (!mem_manager->log)
+            {
+                sprintf(buff , "[INFO] \"%s\" got freed at %0x with size of %i bytes\n" , obj.name , obj.address , obj.size);   
+                strcat(mem_manager->log , buff);
+            }
             
             mem_manager->memAllocated -= obj.size;
             
@@ -129,7 +140,8 @@ void ark_MemoryManager_destroy(ark_MemoryManager* mem_manager)
         #ifdef ARK_MEMORY_AUTO_FREE
             if (mem_manager->memAllocated > 0)
             {
-                strcat(mem_manager->log , "[WARNING] There are still some object that has not been freed\n");
+                if (!mem_manager->log)
+                    strcat(mem_manager->log , "[WARNING] There are still some object that has not been freed\n");
 
                 int len = ark_DynamicArray_length(mem_manager->addressAllocated);
 
@@ -141,7 +153,8 @@ void ark_MemoryManager_destroy(ark_MemoryManager* mem_manager)
                     ark_DynamicArray_pop(mem_manager->addressAllocated);
                 }
 
-                strcat(mem_manager->log , "[INFO] Remaining allocated memory got freed\n");
+                if (!mem_manager->log)
+                    strcat(mem_manager->log , "[INFO] Remaining allocated memory got freed\n");
             }
         #endif
 

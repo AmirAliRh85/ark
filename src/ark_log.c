@@ -1,13 +1,15 @@
 #include "../ark.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 
-
-#define ARK_TRACE(fmt , ...) do { printf("[TRACE] " fmt , __VA_ARGS__); } while(0)
-#define ARK_INFO(fmt , ...) do { printf("[INFO] " fmt , __VA_ARGS__); } while(0)
-#define ARK_WARNING(fmt , ...) do { printf("[WARNING] " fmt , __VA_ARGS__); } while(0)
-#define ARK_ERROR(fmt , ...) do { printf("[ERROR] " fmt , __VA_ARGS__); } while(0)
-#define ARK_FATAL(fmt , ...) do { printf("[FATAL] " fmt , __VA_ARGS__); } while(0)
+struct ark_Log
+{
+    FILE* output;
+    ark_LogLevel minLevel;
+    bool showTimestamp;
+    bool showLocation;
+};
 
 static const char* _levels[] = {
     "TRACE"     ,
@@ -17,46 +19,75 @@ static const char* _levels[] = {
     "FATAL"
 };
 
-void ark_log(ark_LogLevel level , FILE* dest , const char* format , ...)
+ark_Log* ark_Log_create(FILE* output , ark_LogLevel min_log_level , bool show_timestamp , bool show_location)
 {
-    printf("[%s] " , _levels[(int)level % 5]);
+    ark_Log* log = (ark_Log*)malloc(sizeof(ark_Log));
+    if (!log)
+        return NULL;
 
-    if (dest == NULL)
-        dest = stdout;
+    if (!output)
+        log->output = stdout;
+    else
+        log->output = output;
+    log->minLevel = min_log_level;
+    log->showTimestamp = show_timestamp;
+    log->showLocation = show_location;
 
-    va_list args;
-    va_start(args , format);
-    vfprintf(dest , format , args);
-    va_end(args);
-}
-
-/*
-ark_Log* ark_Log_create(const char* title , ark_LogLevel min_level , ark_LogLevel max_level , size_t log_size)
-{
-    ark_Log* log = malloc(sizeof(ark_Log));
-
-    log->title = title;
-    log->minLevel = min_level;
-    log->maxLevel = max_level;
-    log->log = malloc(log_size);
-
+    
     return log;
 }
 
-void ark_Log_add(ark_Log* log , ark_LogLevel level , const char* fmt , ...)
+void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* text , const char* file , const char* function , int line)
 {
-    
-}
+    if (!log)
+    {
+        fprintf(stdout , "[%s] %s\n" , _levels[(int)level % 5] , text);
+        return;
+    }
 
-void ark_Log_flush(ark_Log* log , FILE* dest)
-{
-    fprintf(dest , log->log);
-    log->log[0] = '\0';
+    if (!(log->output))
+        log->output = stdout;
+
+    if (level < log->minLevel)
+        return;
+
+    char buff[128];
+    char sbuff[128];
+    if (log->showTimestamp)
+    {
+        time_t t = time(NULL);
+        struct tm* tm_info = localtime(&t);
+
+        strftime(buff , 128 , "[%Y-%m-%d %H:%M:%S" , tm_info);
+
+        if (log->showLocation)
+        {
+            sprintf(sbuff , " %s > %s > line %i]" , file , function , line);
+            strcat(buff , sbuff);
+        }
+        else
+        {
+            strcat(buff , "]");
+        }
+    }
+    else
+    {
+        if (log->showLocation)
+        {
+            sprintf(buff , "[%s > %s > line %i]" , file , function , line);
+        }
+        else
+        {
+            fprintf(log->output , "[%s] %s\n" , _levels[(int)level % 5] , text);
+            return;
+        }
+    }
+
+    fprintf(log->output , "%s [%s] %s\n" , buff , _levels[(int)level % 5] , text);
 }
 
 void ark_Log_destroy(ark_Log* log)
 {
-    free(log->log);
-    free(log);
+    if (!log)
+        free(log);
 }
-*/

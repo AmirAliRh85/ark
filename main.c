@@ -5,38 +5,38 @@
 int main()
 {
 
-    ark_Stack* s = ark_Stack_create();
+    // ark_Stack* s = ark_Stack_create();
 
 
-    int* x = malloc(4);
-    *x = 5;
-    int* y = malloc(4);
-    *y = 10;
-    int* z = malloc(4);
-    *z = 15;
+    // int* x = malloc(4);
+    // *x = 5;
+    // int* y = malloc(4);
+    // *y = 10;
+    // int* z = malloc(4);
+    // *z = 15;
 
-    ark_Stack_push(s , x);
-    int* a = ark_Stack_top(s);
-    printf("%i\n" , *a);
+    // ark_Stack_push(s , x);
+    // int* a = ark_Stack_top(s);
+    // printf("%i\n" , *a);
     
-    ark_Stack_push(s , y);
-    a = ark_Stack_top(s);
-    printf("%i\n" , *a);
+    // ark_Stack_push(s , y);
+    // a = ark_Stack_top(s);
+    // printf("%i\n" , *a);
 
-    ark_Stack_push(s , z);
-    a = ark_Stack_top(s);
-    printf("%i\n" , *a);
+    // ark_Stack_push(s , z);
+    // a = ark_Stack_top(s);
+    // printf("%i\n" , *a);
 
-    ark_Stack_pop(s);
-    a = ark_Stack_top(s);
-    printf("%i\n" , *a);
+    // ark_Stack_pop(s);
+    // a = ark_Stack_top(s);
+    // printf("%i\n" , *a);
 
-    ark_Stack_pop(s);
-    a = ark_Stack_top(s);
-    printf("%i\n" , *a);
+    // ark_Stack_pop(s);
+    // a = ark_Stack_top(s);
+    // printf("%i\n" , *a);
     
 
-    ark_Stack_destroy(s);
+    // ark_Stack_destroy(s);
 
     char log[1024];
     log[0] = '\0';

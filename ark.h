@@ -132,13 +132,34 @@ typedef enum
 {
     ARK_TRACE       = 0 ,
     ARK_INFO        = 1 ,
-    ARK_ERROR       = 2 ,
-    ARK_WARNING     = 3 ,
+    ARK_WARNING     = 2 ,
+    ARK_ERROR       = 3 ,
     ARK_FATAL       = 4
 } ark_LogLevel;
 
+typedef struct ark_Log ark_Log;
 
-void ark_log(ark_LogLevel level , FILE* dest , const char* format , ...);
+#define ARK_LOG(log , level , text) do { ark_Log_log(log , level , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+
+#define ARK_TRACE(log , text) do { ark_Log_log(log , ARK_TRACE , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+#define ARK_INFO(log , text) do { ark_Log_log(log , ARK_INFO , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+#define ARK_WARNING(log , text) do { ark_Log_log(log , ARK_WARNING , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+#define ARK_ERROR(log , text) do { ark_Log_log(log , ARK_ERROR , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+#define ARK_FATAL(log , text) do { ark_Log_log(log , ARK_FATAL , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+
+ark_Log* ark_Log_create(FILE* output , ark_LogLevel min_log_level , bool show_timestamp , bool show_location);
+
+void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* text , const char* file , const char* function , int line);
+
+void ark_Log_destroy(ark_Log* log);
+
+
+/**                 -- Assert --
+ * 
+ * 
+ */
+
+
 
 /**                 -- MemoryManager --
  * 
