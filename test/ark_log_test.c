@@ -11,10 +11,10 @@ int main()
     // ark_Log_create(... , ... , false , false);
     ark_Log* log = ark_Log_create(stdout , ARK_INFO , true , true);
 
-    ARK_LOG(log , ARK_ERROR , "An error has occured in this line");
+    ARK_LOG(log , ARK_ERROR , "An error has occured in the line %i of the main function" , 14);
     ARK_LOG(log , ARK_FATAL , "An error has occured in this line");
     ARK_LOG(log , ARK_ERROR , "An error has occured in this line");
-    ARK_INFO(log , "This is just for logging");
+    ARK_INFO(log , "This is just for logging and some va args: %s , %.2f" , "something" , 5.87268);
     ARK_TRACE(log , "this line should not be displayed");
 
     ark_Log_destroy(log);

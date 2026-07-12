@@ -1,5 +1,5 @@
-[2026-07-11 20:17:28 ./ark_log_test.c > main > line 72] [FATAL] core dumpled
-[2026-07-11 20:17:28 ./ark_log_test.c > main > line 73] [FATAL] segmentation error
-[2026-07-11 20:17:28 ./ark_log_test.c > main > line 74] [INFO] This is just for logging
-[2026-07-11 20:17:28 ./ark_log_test.c > main > line 75] [ERROR] An error has occured in this line
-[2026-07-11 20:17:28 ./ark_log_test.c > main > line 76] [TRACE] this line should not be displayed
+[2026-07-12 19:43:58 ./ark_log_test.c > main > line 72] [FATAL] core dumpled
+[2026-07-12 19:43:58 ./ark_log_test.c > main > line 73] [FATAL] segmentation error
+[2026-07-12 19:43:58 ./ark_log_test.c > main > line 74] [INFO] This is just for logging
+[2026-07-12 19:43:58 ./ark_log_test.c > main > line 75] [ERROR] An error has occured in this line
+[2026-07-12 19:43:58 ./ark_log_test.c > main > line 76] [TRACE] this line should not be displayed
