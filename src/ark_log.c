@@ -3,13 +3,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-struct ark_Log
-{
-    FILE* output;
-    ark_LogLevel minLevel;
-    bool showTimestamp;
-    bool showLocation;
-};
+#define LOG_TEMP_BUFF_SIZE      2048
 
 static const char* _levels[] = {
     "TRACE"     ,
@@ -30,6 +24,7 @@ ark_Log* ark_Log_create(FILE* output , ark_LogLevel min_log_level , bool show_ti
     else
         log->output = output;
     log->minLevel = min_log_level;
+    log->tempBuff = (char*)malloc(LOG_TEMP_BUFF_SIZE);
     log->showTimestamp = show_timestamp;
     log->showLocation = show_location;
 
@@ -37,11 +32,11 @@ ark_Log* ark_Log_create(FILE* output , ark_LogLevel min_log_level , bool show_ti
     return log;
 }
 
-void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* text , const char* file , const char* function , int line)
+void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* file , const char* function , int line)
 {
     if (!log)
     {
-        fprintf(stdout , "[%s] %s\n" , _levels[(int)level % 5] , text);
+        fprintf(stdout , "[%s] %s\n" , _levels[(int)level % 5] , log->tempBuff);
         return;
     }
 
@@ -78,16 +73,19 @@ void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* text , const ch
         }
         else
         {
-            fprintf(log->output , "[%s] %s\n" , _levels[(int)level % 5] , text);
+            fprintf(log->output , "[%s] %s\n" , _levels[(int)level % 5] , log->tempBuff);
             return;
         }
     }
 
-    fprintf(log->output , "%s [%s] %s\n" , buff , _levels[(int)level % 5] , text);
+    fprintf(log->output , "%s [%s] %s\n" , buff , _levels[(int)level % 5] , log->tempBuff);
 }
 
 void ark_Log_destroy(ark_Log* log)
 {
     if (!log)
+    {
+        free(log->tempBuff);
         free(log);
+    }
 }

@@ -139,17 +139,33 @@ typedef enum
 
 typedef struct ark_Log ark_Log;
 
-#define ARK_LOG(log , level , text) do { ark_Log_log(log , level , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+struct ark_Log
+{
+    FILE* output;
+    ark_LogLevel minLevel;
+    char* tempBuff;
+    bool showTimestamp;
+    bool showLocation;
+};
 
-#define ARK_TRACE(log , text) do { ark_Log_log(log , ARK_TRACE , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
-#define ARK_INFO(log , text) do { ark_Log_log(log , ARK_INFO , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
-#define ARK_WARNING(log , text) do { ark_Log_log(log , ARK_WARNING , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
-#define ARK_ERROR(log , text) do { ark_Log_log(log , ARK_ERROR , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
-#define ARK_FATAL(log , text) do { ark_Log_log(log , ARK_FATAL , text , __FILE__ , __FUNCTION__ , __LINE__); } while(0)
+#define ARK_LOG(log , level , fmt , ...)                                    \
+    do {                                                                    \
+        if ((log)->minLevel <= level)                                       \
+        {                                                                   \
+            sprintf((log)->tempBuff , fmt , ##__VA_ARGS__);                 \
+            ark_Log_log((log) , level , __FILE__ , __func__ , __LINE__);    \
+        }                                                                   \
+    } while(0)                                                              \
+
+#define ARK_TRACE(log , fmt , ...) ARK_LOG(log , ARK_TRACE , fmt , ##__VA_ARGS__)
+#define ARK_INFO(log , fmt , ...) ARK_LOG(log , ARK_INFO , fmt , ##__VA_ARGS__)
+#define ARK_WARNING(log , fmt , ...) ARK_LOG(log , ARK_WARNING , fmt , ##__VA_ARGS__)
+#define ARK_ERROR(log , fmt , ...) ARK_LOG(log , ARK_ERROR , fmt , ##__VA_ARGS__)
+#define ARK_FATAL(log , fmt , ...) ARK_LOG(log , ARK_FATAL , fmt , ##__VA_ARGS__)
 
 ark_Log* ark_Log_create(FILE* output , ark_LogLevel min_log_level , bool show_timestamp , bool show_location);
 
-void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* text , const char* file , const char* function , int line);
+void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* file , const char* function , int line);
 
 void ark_Log_destroy(ark_Log* log);
 
