@@ -2,8 +2,15 @@
 #include <stdbool.h>
 
 
-#define ARK_DEFAULT_DYNAMIC_ARRAY_CAPACITY  10
+#define ARK_DEFAULT_DYNAMIC_ARRAY_CAPACITY  16
 
+struct ark_DynamicArray
+{
+    int capacity;
+    int currIdx;
+    int elementSize;
+    void* objAddress;
+};
 
 ark_DynamicArray* ark_DynamicArray_create(int sizeof_obj)
 {
@@ -15,60 +22,89 @@ ark_DynamicArray* ark_DynamicArray_create(int sizeof_obj)
         return NULL;
 
     da->capacity = ARK_DEFAULT_DYNAMIC_ARRAY_CAPACITY;
-    da->currentIdx = 0;
+    da->currIdx = 0;
     da->elementSize = sizeof_obj;    
-    da->objectAddress = (void*)malloc(sizeof_obj * da->capacity);
+    da->objAddress = (void*)malloc(sizeof_obj * da->capacity);
 
     return da;
 }
 
 void ark_DynamicArray_push(ark_DynamicArray* da , const void* src)
 {
-    if (da->currentIdx >= da->capacity)
+    if (da == NULL) 
+        return;
+
+    if (da->currIdx >= da->capacity)
         ark_DynamicArray_resize(da);
 
-    memcpy((char*)da->objectAddress + da->currentIdx * da->elementSize , src , da->elementSize);
+    memcpy((char*)da->objAddress + da->currIdx * da->elementSize , src , da->elementSize);
 
-    da->currentIdx += 1;
+    da->currIdx += 1;
 }
 
 void ark_DynamicArray_pop(ark_DynamicArray* da)
 {
-    if (da->currentIdx > 0)
-        da->currentIdx -= 1;
+    if (da == NULL) 
+        return;
+
+    if (da->currIdx > 0)
+        da->currIdx -= 1;
 }
 
 void ark_DynamicArray_remove(ark_DynamicArray* da , int index)
 {
-    if (index == da->currentIdx - 1)
+    if (da == NULL) 
+        return;
+
+    if (index == da->currIdx - 1)
         ark_DynamicArray_pop(da);
 
-    if (index >= da->currentIdx || index < 0)
+    if (index >= da->currIdx || index < 0)
         return;
 
     void* dst = ark_DynamicArray_at(da , index);
     void* src = ark_DynamicArray_at(da , index + 1);
 
-    memcpy(dst , src , (da->currentIdx - (index + 1)) * da->elementSize);
-    da->currentIdx -= 1;
+    memcpy(dst , src , (da->currIdx - (index + 1)) * da->elementSize);
+    da->currIdx -= 1;
 }
+
+void ark_DynamicArray_shrink(ark_DynamicArray* da)
+{
+    if (da->currIdx == da->capacity || da->currIdx == 0 || da == NULL)
+        return;
+    
+    void* new_memory = realloc(da->objAddress , sizeof(da->elementSize) * da->currIdx);
+    
+    if (new_memory)
+    {
+        da->capacity = da->currIdx;
+        da->objAddress = new_memory;
+    }
+}   
 
 void ark_DynamicArray_resize(ark_DynamicArray* da)
 {
+    if (da == NULL) 
+        return;
+
     int new_capacity = da->capacity * 2;
 
-    void* new_size = realloc(da->objectAddress , new_capacity * da->elementSize);
+    void* new_size = realloc(da->objAddress , new_capacity * da->elementSize);
     if (!new_size)
         return;
         
     da->capacity = new_capacity;
-    da->objectAddress = new_size;
+    da->objAddress = new_size;
 }
 
 void ark_DynamicArray_destroy(ark_DynamicArray* da)
 {
-    if (!da->objectAddress)
-        free(da->objectAddress);
+    if (da == NULL) 
+        return;
+
+    if (!da->objAddress)
+        free(da->objAddress);
     if (!da)
         free(da);
 }
@@ -76,24 +112,44 @@ void ark_DynamicArray_destroy(ark_DynamicArray* da)
 
 void* ark_DynamicArray_at(ark_DynamicArray* da , int index)
 {
-    if (index >= 0 && index < da->currentIdx)
-        return ((char*)da->objectAddress + (index * da->elementSize));
+    if (da == NULL) 
+        return NULL;
+
+    if (index >= 0 && index < da->currIdx)
+        return ((char*)da->objAddress + (index * da->elementSize));
     else
         return NULL;
 }
 
 int ark_DynamicArray_length(ark_DynamicArray* da)
 {
-    return da->currentIdx;
+    if (da == NULL)
+        return -1;
+
+    return da->currIdx;
+}
+
+int ark_DynamicArray_size(ark_DynamicArray* da)
+{
+    if (da == NULL)
+        return -1;
+
+    return ark_DynamicArray_length(da);
 }
 
 int ark_DynamicArray_capacity(ark_DynamicArray* da)
 {
+    if (da == NULL)
+        return -1;
+
     return da->capacity;
 }
 
 int ark_DynamicArray_find(ark_DynamicArray* da , const void* val)
 {
+    if (da == NULL)
+        return -1;
+
     int len = ark_DynamicArray_length(da);
     for (unsigned int i = 0 ; i < len ; i++)
     {
@@ -105,7 +161,15 @@ int ark_DynamicArray_find(ark_DynamicArray* da , const void* val)
     return -1;
 }
 
+/* ===================================== Pair ===================================== */
 
+struct ark_Pair
+{
+    int firstItemSize;
+    int secondItemSize;
+    int elementSize;
+    ark_DynamicArray* dArray;
+};
 
 ark_Pair* ark_Pair_create(int sizeof_first_item , int sizeof_second_item)
 {
@@ -136,22 +200,28 @@ void ark_Pair_push(ark_Pair* p , void* first_item , void* second_item)
     if (!p || !first_item || !second_item)
         return;
 
-    if (p->dArray->currentIdx >= p->dArray->capacity)
+    if (p->dArray->currIdx >= p->dArray->capacity)
         ark_DynamicArray_resize(p->dArray);
 
-    void* dest = (char*)p->dArray->objectAddress + p->dArray->elementSize * p->dArray->currentIdx;
+    void* dest = (char*)p->dArray->objAddress + p->dArray->elementSize * p->dArray->currIdx;
     if (!dest) return;
     
     memcpy(dest, first_item, p->firstItemSize);
     memcpy((char*)dest + p->firstItemSize, second_item, p->secondItemSize);
     
-    p->dArray->currentIdx += 1;
+    p->dArray->currIdx += 1;
 }
 
 void ark_Pair_pop(ark_Pair* p)
 {
     if (p && p->dArray)
         ark_DynamicArray_pop(p->dArray);
+}
+
+void ark_Pair_shrink(ark_Pair* p)
+{
+    if (p && p->dArray)
+        ark_DynamicArray_shrink(p->dArray);
 }
 
 void ark_Pair_destroy(ark_Pair* p)
@@ -162,7 +232,7 @@ void ark_Pair_destroy(ark_Pair* p)
 
 void* ark_Pair_at(ark_Pair* p , int index , ark_PairFlag flag)
 {
-    if (index < 0 || index >= p->dArray->currentIdx)
+    if (index < 0 || index >= p->dArray->currIdx)
         return NULL;
 
     void* object_addres = ark_DynamicArray_at(p->dArray , index);
@@ -175,7 +245,7 @@ void* ark_Pair_at(ark_Pair* p , int index , ark_PairFlag flag)
 
 int ark_Pair_length(ark_Pair* p)
 {
-    return p->dArray->currentIdx;
+    return p->dArray->currIdx;
 }
 int ark_Pair_capacity(ark_Pair* p)
 {
@@ -203,9 +273,10 @@ void ark_Stack_push(ark_Stack* stack , void* value)
     ark_SNode* top = malloc(sizeof(ark_SNode));
     top->prev = NULL;
     top->value = value;
-
+    
     stack->size += 1;
-    if (!stack->top)
+
+    if (stack->top == NULL)
     {
         stack->top = top;
         return;
@@ -217,25 +288,23 @@ void ark_Stack_push(ark_Stack* stack , void* value)
 
 void ark_Stack_pop(ark_Stack* stack)
 {
-    if (stack->size <= 0)
+    if (stack->size == 0 || stack == NULL)
         return;
 
     ark_SNode* top = stack->top;
+
     stack->top = top->prev;
     stack->size -= 1;
-    free(top->value);
+
     free(top);
 }
 
 void ark_Stack_destroy(ark_Stack* stack)
 {
-    while (stack->top->prev != NULL)
+    while (stack->size >= 1)
     {
         ark_Stack_pop(stack);
     }
-
-    if (stack->top != NULL)
-        ark_Stack_pop(stack);
 
     free(stack);
 }
