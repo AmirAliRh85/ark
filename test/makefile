@@ -5,3 +5,4 @@ source = ../src/ark_algorithm.c ../src/ark_memory.c ../src/ark_log.c
 run : 
 	gcc ./ark_log_test.c -o ark_log_test.exe $(source)
 	gcc ./ark_memory_test.c -o ark_memory_test.exe $(source)
+	gcc ./ark_algorithm_test.c -o ark_algorithm_test.exe $(source)
