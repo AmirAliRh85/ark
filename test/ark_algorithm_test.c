@@ -15,7 +15,12 @@ void printdArrayInfo(ark_DynamicArray* da , int idx)
 }
 
 int main()
-{
+{   
+    int* x = malloc(sizeof(int));
+    int* y = malloc(5 * sizeof(int));
+    double* d = malloc(sizeof(double));
+
+
     // DynamicArray
     ark_DynamicArray* da = ark_DynamicArray_create(sizeof(OBJ));
     printdArrayInfo(da , -1);
@@ -55,20 +60,18 @@ int main()
 
     ark_DynamicArray_destroy(da);
 
+    #if 0
     // Stack
     ark_Stack* s = ark_Stack_create();
 
-    int* x = malloc(4);
     *x = 5;
     ark_Stack_push(s , x);
     printf("%i , size: %i\n" , *(int*)ark_Stack_top(s) , ark_Stack_size(s));
     
-    int* y = malloc(20);
     y[0] = 3;
     ark_Stack_push(s , y);
     printf("%i , size: %i\n" , *(int*)ark_Stack_top(s) , ark_Stack_size(s));
     
-    double* d = malloc(8);
     *d = 5.555;
     ark_Stack_push(s , d);
     printf("%.2f , size: %i\n" , *(double*)ark_Stack_top(s) , ark_Stack_size(s));
@@ -84,4 +87,48 @@ int main()
     printf("size: %i\n" , ark_Stack_size(s));
 
     ark_Stack_destroy(s);
+    #endif
+    /*______________________________________________________________________________________________________*/
+
+    ark_Queue* q = ark_Queue_create();
+
+    *x = 10;
+    y[0] = 1;
+    y[1] = 2;
+    y[2] = 3;
+    y[3] = 4;
+    y[4] = 5;
+    *d = 12345.6789;
+
+    ark_Queue_push(q , x);
+    ARK_ASSERT(*(int*)ark_Queue_front(q) == 10 , "queue push test");
+    ARK_ASSERT(ark_Queue_size(q) == 1 , "queue size test");
+
+    printf("%i\n" , *(int*)ark_Queue_front(q));
+    
+    ark_Queue_push(q , y);
+    ARK_ASSERT(ark_Queue_size(q) == 2 , "queue size test");
+
+    ark_Queue_pop(q);
+    ARK_ASSERT(ark_Queue_size(q) == 1 , "queue size test");
+    
+    int* y_ptr = ark_Queue_front(q);
+    
+    printf("%i %i %i %i %i \n" , *(y_ptr + 0) , y_ptr[1] , y_ptr[2] , y_ptr[3] , y_ptr[4]);
+
+    ARK_ASSERT(!ark_Queue_isEmpty(q) , "queue isEmpty test");
+    ark_Queue_pop(q);
+    ARK_ASSERT(ark_Queue_isEmpty(q) , "queue isEmpty test");
+    ARK_ASSERT(ark_Queue_size(q) == 0 , "queue isEmpty test");
+
+    ark_Queue_push(q , d);
+    ARK_ASSERT(ark_Queue_size(q) == 1 , "queue size test");
+    ARK_ASSERT(*(double*)ark_Queue_front(q) == *d , "queue front test");
+    ARK_ASSERT((double*)ark_Queue_front(q) == d , "queue front test");
+
+    ark_Queue_destory(q);
+
+    free(x);
+    free(y);
+    free(d);
 }

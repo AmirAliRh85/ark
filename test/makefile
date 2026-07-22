@@ -1,4 +1,4 @@
-source = ../src/ark_algorithm.c ../src/ark_memory.c ../src/ark_log.c
+source = ../src/ark_algorithm.c ../src/ark_memory.c ../src/ark_log.c ../src/ark_queue.c
 
 # ark_log_test.c -> passed all test (multi threading can be implemented)
 

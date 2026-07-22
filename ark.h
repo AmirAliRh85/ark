@@ -70,7 +70,7 @@ int ark_Pair_size(ark_Pair* p);
 int ark_Pair_capacity(ark_Pair* p);
 
 
-//                  -- LinkedList --
+//                  -- LinkedList and Nodes --
 
 typedef struct ark_SNode ark_SNode;
 typedef struct ark_DNode ark_DNode;
@@ -108,6 +108,19 @@ void ark_Stack_destroy(ark_Stack* stack);
 void* ark_Stack_top(ark_Stack* stack);
 int ark_Stack_size(ark_Stack* stack);
 bool ark_Stack_isEmpty(ark_Stack* stack);
+
+//                  -- Queue
+
+typedef struct ark_Queue ark_Queue;
+
+ark_Queue* ark_Queue_create();
+void ark_Queue_push(ark_Queue* q , void* val);
+void ark_Queue_pop(ark_Queue* q);
+void ark_Queue_destory(ark_Queue* q);
+
+void* ark_Queue_front(ark_Queue* q);
+bool ark_Queue_isEmpty(ark_Queue* q);
+int ark_Queue_size(ark_Queue* q);
 
 //                  -- Hashmap --
 
@@ -158,13 +171,6 @@ ark_Log* ark_Log_create(FILE* output , ark_LogLevel min_log_level , bool show_ti
 void ark_Log_log(ark_Log* log , ark_LogLevel level , const char* file , const char* function , int line);
 
 void ark_Log_destroy(ark_Log* log);
-
-
-/**                 -- Assert --
- * 
- * 
- */
-
 
 
 /**                 -- MemoryManager --
