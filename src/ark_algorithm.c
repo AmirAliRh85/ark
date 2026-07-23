@@ -98,6 +98,19 @@ void ark_DynamicArray_resize(ark_DynamicArray* da)
     da->objAddress = new_size;
 }
 
+void ark_DynamicArray_reserve(ark_DynamicArray* da , int new_capacity)
+{
+    if (da == NULL || new_capacity <= da->capacity)
+        return;
+
+    void* new_mem = realloc(da->objAddress , new_capacity * da->elementSize);
+    if (new_mem == NULL)
+        return;
+
+    da->capacity = new_capacity;
+    da->objAddress = new_mem;
+}
+
 void ark_DynamicArray_destroy(ark_DynamicArray* da)
 {
     if (da == NULL) 

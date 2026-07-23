@@ -37,6 +37,7 @@ void ark_DynamicArray_pop(ark_DynamicArray* da);
 void ark_DynamicArray_remove(ark_DynamicArray* da , int index);
 void ark_DynamicArray_push(ark_DynamicArray* da , const void* src);
 void ark_DynamicArray_shrink(ark_DynamicArray* da);
+void ark_DynamicArray_reserve(ark_DynamicArray* da , int new_capacity);
 void ark_DynamicArray_resize(ark_DynamicArray* da);
 void ark_DynamicArray_destroy(ark_DynamicArray* da);
 
@@ -125,6 +126,25 @@ int ark_Queue_size(ark_Queue* q);
 //                  -- Hashmap --
 
 
+//                  -- Gapbuffer --
+
+typedef struct ark_Gapbuffer ark_Gapbuffer;
+
+// gapbuffer size is fixed and does not change (is is not dynamic)
+ark_Gapbuffer* ark_Gapbuffer_create(int capacity , int sizeof_obj);
+ark_Gapbuffer* ARK_GAPBUFFER_CREATE(int capacity , int sizeof_obj);
+void ark_Gapbuffer_insert(ark_Gapbuffer* gb , void* val);
+void ark_Gapbuffer_remove(ark_Gapbuffer* gb);
+void ark_Gapbuffer_moveLeft(ark_Gapbuffer* gb);
+void ark_Gapbuffer_moveRight(ark_Gapbuffer* gb);
+void ark_Gapbuffer_destroy(ark_Gapbuffer* gb);
+
+void* ark_Gapbuffer_at(ark_Gapbuffer* gb , int idx);
+int ark_Gapbuffer_getGapStart(ark_Gapbuffer* gb);
+int ark_Gapbuffer_getGapEnd(ark_Gapbuffer* gb);
+bool ark_Gapbuffer_isFull(ark_Gapbuffer* gb);
+
+void ark_Gapbuffer_info(ark_Gapbuffer* gb);
 
 /**                 -- Log --
  * 
