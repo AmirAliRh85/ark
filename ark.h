@@ -1,51 +1,50 @@
 #ifndef ARK_H
 #define ARK_H
 
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 
 #define ARK_MAJOR_VERSION   0
-#define ARK_MINOR_VERSION   3
+#define ARK_MINOR_VERSION   0
 #define ARK_PATCH_VERSION   0
 
-/**                 -- Algorithms --
- *  - DynamicArray
- *      1. create
- *      2.
- * 
- *  - Pair
- * 
- * 
- *  - Stack
- * 
- * 
- *  - Hashmap
- * 
- * 
- *  - LinkedList
- * 
- */
+//                  -- Array --
+
+typedef struct ark_Array ark_Array;
+
+ark_Array* ark_Array_create(int capacity , int sizeof_obj);
+void ark_Array_insert(ark_Array* arr , const void* src , int index);
+void ark_Array_resize(ark_Array* arr , int new_capacity);
+void ark_Array_destroy(ark_Array* arr);
+
+void* ark_Array_at(ark_Array* arr , int index);
+int ark_Array_capacity(ark_Array* arr);
+int ark_Array_find(ark_Array* arr , const void* val);
 
 //                  -- DynamicArray --
 
-typedef struct ark_DynamicArray ark_DynamicArray;
+typedef struct ark_Vector ark_Vector;
 
-ark_DynamicArray* ark_DynamicArray_create(int sizeof_obj);
-void ark_DynamicArray_pop(ark_DynamicArray* da);
-void ark_DynamicArray_remove(ark_DynamicArray* da , int index);
-void ark_DynamicArray_push(ark_DynamicArray* da , const void* src);
-void ark_DynamicArray_shrink(ark_DynamicArray* da);
-void ark_DynamicArray_reserve(ark_DynamicArray* da , int new_capacity);
-void ark_DynamicArray_resize(ark_DynamicArray* da);
-void ark_DynamicArray_destroy(ark_DynamicArray* da);
+ark_Vector* ark_Vector_create(int sizeof_obj);
+void ark_Vector_pop(ark_Vector* vec);
+void ark_Vector_remove(ark_Vector* vec , int index);
+void ark_Vector_push(ark_Vector* vec , const void* src);
+void ark_Vector_insert(ark_Vector* vec , const void* src , int index);
+void ark_Vector_shrink(ark_Vector* vec);
+void ark_Vector_reserve(ark_Vector* vec , int new_capacity);
+void ark_Vector_resize(ark_Vector* vec);
+void ark_Vector_destroy(ark_Vector* vec);
 
-void* ark_DynamicArray_at(ark_DynamicArray* da , int index);
-int ark_DynamicArray_length(ark_DynamicArray* da);
-int ark_DynamicArray_size(ark_DynamicArray* da);
-int ark_DynamicArray_capacity(ark_DynamicArray* da);
-int ark_DynamicArray_find(ark_DynamicArray* da , const void* val);
+void* ark_Vector_at(ark_Vector* vec , int index);
+int ark_Vector_length(ark_Vector* vec);
+int ark_Vector_size(ark_Vector* vec);
+int ark_Vector_capacity(ark_Vector* vec);
+int ark_Vector_find(ark_Vector* vec , const void* val);
 
 
 //                  -- Pair --
@@ -70,11 +69,11 @@ int ark_Pair_length(ark_Pair* p);
 int ark_Pair_size(ark_Pair* p);
 int ark_Pair_capacity(ark_Pair* p);
 
-
 //                  -- LinkedList and Nodes --
 
 typedef struct ark_SNode ark_SNode;
 typedef struct ark_DNode ark_DNode;
+
 
 struct ark_SNode
 {
@@ -125,6 +124,16 @@ int ark_Queue_size(ark_Queue* q);
 
 //                  -- Hashmap --
 
+typedef struct ark_Hashmap ark_Hashmap;
+
+// the key as default is const char*
+ark_Hashmap* ark_Hashmap_create(int sizeof_val);
+void ark_Hashmap_insert(ark_Hashmap* hm , const char* key , void* val);
+int ark_Hashmap_remove(ark_Hashmap* hm , const char* key);
+void ark_Hashmap_setHashFunction(ark_Hashmap* hm , uint64_t (*hash_function)(const char*));
+void ark_Hashmap_destroy(ark_Hashmap* hm);
+
+void* ark_Hashmap_get(ark_Hashmap* hm , const char* key);
 
 //                  -- Gapbuffer --
 
@@ -132,7 +141,6 @@ typedef struct ark_Gapbuffer ark_Gapbuffer;
 
 // gapbuffer size is fixed and does not change (is is not dynamic)
 ark_Gapbuffer* ark_Gapbuffer_create(int capacity , int sizeof_obj);
-ark_Gapbuffer* ARK_GAPBUFFER_CREATE(int capacity , int sizeof_obj);
 void ark_Gapbuffer_insert(ark_Gapbuffer* gb , void* val);
 void ark_Gapbuffer_remove(ark_Gapbuffer* gb);
 void ark_Gapbuffer_moveLeft(ark_Gapbuffer* gb);
@@ -201,7 +209,7 @@ void ark_Log_destroy(ark_Log* log);
 
 typedef struct ark_MemoryManager
 {
-    ark_DynamicArray* addressAllocated;
+    ark_Vector* addressAllocated;
     int memAllocated;
     char* log;
 } ark_MemoryManager;
