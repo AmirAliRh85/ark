@@ -9,7 +9,7 @@ struct ark_Array
 };
 
 
-ark_Array* ark_Array_create(int capacity , int sizeof_obj)
+ark_Array* ark_Array_create(int sizeof_obj , int capacity)
 {
     if (capacity <= 0)
         return NULL;
@@ -19,8 +19,8 @@ ark_Array* ark_Array_create(int capacity , int sizeof_obj)
         return NULL;
     
     arr->capacity = capacity;
-    arr->objAddress = malloc(sizeof_obj * capacity);
-    arr->objSize;
+    arr->objSize = sizeof_obj;
+    arr->objAddress = malloc(capacity * sizeof_obj);
 
     if (arr->objAddress == NULL)
     {
@@ -31,7 +31,7 @@ ark_Array* ark_Array_create(int capacity , int sizeof_obj)
     return arr;
 }
 
-void ark_Array_insert(ark_Array* arr , const void* src , int index)
+void ark_Array_insert(ark_Array* arr , int index , const void* src)
 {
     if (arr == NULL)
         return;

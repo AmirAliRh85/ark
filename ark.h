@@ -17,8 +17,8 @@
 
 typedef struct ark_Array ark_Array;
 
-ark_Array* ark_Array_create(int capacity , int sizeof_obj);
-void ark_Array_insert(ark_Array* arr , const void* src , int index);
+ark_Array* ark_Array_create(int sizeof_ob , int capacityj);
+void ark_Array_insert(ark_Array* arr , int index , const void* src);
 void ark_Array_resize(ark_Array* arr , int new_capacity);
 void ark_Array_destroy(ark_Array* arr);
 
@@ -134,6 +134,8 @@ void ark_Hashmap_setHashFunction(ark_Hashmap* hm , uint64_t (*hash_function)(con
 void ark_Hashmap_destroy(ark_Hashmap* hm);
 
 void* ark_Hashmap_get(ark_Hashmap* hm , const char* key);
+
+void _ark_Hashmap_debug(ark_Hashmap* hm);
 
 //                  -- Gapbuffer --
 
