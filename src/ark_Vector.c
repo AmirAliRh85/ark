@@ -10,7 +10,7 @@ struct ark_Vector
     int capacity;
     int currIdx;
     int objSize;
-    void* objAddress;
+    void* _mem;
 };
 
 ark_Vector* ark_Vector_create(int sizeof_obj)
@@ -25,27 +25,37 @@ ark_Vector* ark_Vector_create(int sizeof_obj)
     vec->capacity = ARK_VECTOR_DEFAULT_CAPACITY;
     vec->currIdx = 0;
     vec->objSize = sizeof_obj;    
-    vec->objAddress = (void*)malloc(sizeof_obj * vec->capacity);
+    vec->_mem = (void*)malloc(sizeof_obj * vec->capacity);
+
+    if (vec->_mem == NULL)
+    {
+        free(vec);
+        return NULL;
+    }
 
     return vec;
 }
 
 void ark_Vector_push(ark_Vector* vec , const void* src)
 {
-    if (vec == NULL) 
+    if (vec == NULL || src == NULL) 
         return;
 
     if (vec->currIdx >= vec->capacity)
         ark_Vector_resize(vec);
 
-    memcpy((char*)vec->objAddress + vec->currIdx * vec->objSize , src , vec->objSize);
+    memcpy((char*)vec->_mem + vec->currIdx * vec->objSize , src , vec->objSize);
 
     vec->currIdx += 1;
 }
 
+// index should not be higher than size(length) of the vector
 void ark_Vector_insert(ark_Vector* vec , const void* src , int index)
 {
-    if (vec == NULL || index < 0 || index > vec->capacity)
+    if (vec == NULL || index < 0)
+        return;
+
+    if (index > vec->currIdx)
         return;
 
     if (index == vec->capacity)
@@ -57,8 +67,8 @@ void ark_Vector_insert(ark_Vector* vec , const void* src , int index)
     if (vec->currIdx == vec->capacity)
         ark_Vector_resize(vec);
 
-    memcpy((char*)vec->objAddress + (index + 1) * vec->objSize , vec->objAddress + index * vec->objSize , vec->objSize);
-    memcpy((char*)vec->objAddress + index * vec->objSize , src , vec->objSize);
+    memcpy((char*)vec->_mem + (index + 1) * vec->objSize , vec->_mem + index * vec->objSize , vec->objSize);
+    memcpy((char*)vec->_mem + index * vec->objSize , src , vec->objSize);
 
     vec->currIdx += 1;
 }
@@ -95,12 +105,12 @@ void ark_Vector_shrink(ark_Vector* vec)
     if (vec->currIdx == vec->capacity || vec->currIdx == 0 || vec == NULL)
         return;
     
-    void* new_memory = realloc(vec->objAddress , sizeof(vec->objSize) * vec->currIdx);
+    void* new_memory = realloc(vec->_mem , sizeof(vec->objSize) * vec->currIdx);
     
     if (new_memory)
     {
         vec->capacity = vec->currIdx;
-        vec->objAddress = new_memory;
+        vec->_mem = new_memory;
     }
 }   
 
@@ -111,12 +121,12 @@ void ark_Vector_resize(ark_Vector* vec)
 
     int new_capacity = vec->capacity * 2;
 
-    void* new_size = realloc(vec->objAddress , new_capacity * vec->objSize);
+    void* new_size = realloc(vec->_mem , new_capacity * vec->objSize);
     if (!new_size)
         return;
         
     vec->capacity = new_capacity;
-    vec->objAddress = new_size;
+    vec->_mem = new_size;
 }
 
 void ark_Vector_reserve(ark_Vector* vec , int new_capacity)
@@ -124,12 +134,12 @@ void ark_Vector_reserve(ark_Vector* vec , int new_capacity)
     if (vec == NULL || new_capacity <= vec->capacity)
         return;
 
-    void* new_mem = realloc(vec->objAddress , new_capacity * vec->objSize);
+    void* new_mem = realloc(vec->_mem , new_capacity * vec->objSize);
     if (new_mem == NULL)
         return;
 
     vec->capacity = new_capacity;
-    vec->objAddress = new_mem;
+    vec->_mem = new_mem;
 }
 
 void ark_Vector_destroy(ark_Vector* vec)
@@ -137,8 +147,8 @@ void ark_Vector_destroy(ark_Vector* vec)
     if (vec == NULL) 
         return;
 
-    if (!vec->objAddress)
-        free(vec->objAddress);
+    if (!vec->_mem)
+        free(vec->_mem);
     if (!vec)
         free(vec);
 }
@@ -150,7 +160,7 @@ void* ark_Vector_at(ark_Vector* vec , int index)
         return NULL;
 
     if (index >= 0 && index < vec->currIdx)
-        return ((char*)vec->objAddress + (index * vec->objSize));
+        return ((char*)vec->_mem + (index * vec->objSize));
     else
         return NULL;
 }
@@ -165,9 +175,6 @@ int ark_Vector_length(ark_Vector* vec)
 
 int ark_Vector_size(ark_Vector* vec)
 {
-    if (vec == NULL)
-        return -1;
-
     return ark_Vector_length(vec);
 }
 
@@ -237,7 +244,7 @@ void ark_Pair_push(ark_Pair* p , void* first_item , void* second_item)
     if (p->dArray->currIdx >= p->dArray->capacity)
         ark_Vector_resize(p->dArray);
 
-    void* dest = (char*)p->dArray->objAddress + p->dArray->objSize * p->dArray->currIdx;
+    void* dest = (char*)p->dArray->_mem + p->dArray->objSize * p->dArray->currIdx;
     if (!dest) return;
     
     memcpy(dest, first_item, p->firstItemSize);

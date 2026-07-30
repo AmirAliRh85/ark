@@ -13,6 +13,7 @@
 #define ARK_MINOR_VERSION   0
 #define ARK_PATCH_VERSION   0
 
+
 //                  -- Array --
 
 typedef struct ark_Array ark_Array;
@@ -20,13 +21,27 @@ typedef struct ark_Array ark_Array;
 ark_Array* ark_Array_create(int sizeof_ob , int capacityj);
 void ark_Array_insert(ark_Array* arr , int index , const void* src);
 void ark_Array_resize(ark_Array* arr , int new_capacity);
+void ark_Array_concat(ark_Array* arr1 , ark_Array* arr2);
+ark_Array* ark_Array_slice(ark_Array* arr , int starting_idx , int ending_idx);
 void ark_Array_destroy(ark_Array* arr);
 
 void* ark_Array_at(ark_Array* arr , int index);
 int ark_Array_capacity(ark_Array* arr);
-int ark_Array_find(ark_Array* arr , const void* val);
+// this only works for default types of C, not user defined 
+#define _ark_Array_dbg(arr , type)\
+    do\
+    {\
+        if (arr != NULL)\
+        {\
+            for (int i = 0 ; i < ark_Array_capacity(arr) ; i++)\
+            {\
+                printf("%-2i > [objAddress %0x] [objVal %0x]\n" , i , ark_Array_at(arr , i) , *(type*)ark_Array_at(arr , i));\
+            }\
+        }\
+    } while (0)
 
-//                  -- DynamicArray --
+
+//                  -- Vector --
 
 typedef struct ark_Vector ark_Vector;
 
@@ -49,7 +64,6 @@ int ark_Vector_find(ark_Vector* vec , const void* val);
 
 //                  -- Pair --
 
-
 typedef enum
 {
     ARK_FIRST       = 1     ,
@@ -58,6 +72,7 @@ typedef enum
 
 typedef struct ark_Pair ark_Pair;
 
+// it is recommended to use struct or your own object instead of using pair
 ark_Pair* ark_Pair_create(int sizeof_first_item , int sizeof_second_item);
 void ark_Pair_push(ark_Pair* p , void* first_item , void* second_item);
 void ark_Pair_pop(ark_Pair* p);
