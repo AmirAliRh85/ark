@@ -8,10 +8,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "./include/macros.h"
+
 
 #define ARK_MAJOR_VERSION   0
 #define ARK_MINOR_VERSION   0
 #define ARK_PATCH_VERSION   0
+
+
+#define ARK_ARRAY           0
+#define ARK_RING_BUFFER     1
+#define ARK_VECTOR          2
+#define ARK_PAIR            3
+#define ARK_GAP_BUFFER      4
+#define ARK_LINKED_LIST     5
+#define ARK_STACK           6
+#define ARK_QUEUE           7
 
 
 //                  -- Array --
@@ -39,6 +51,30 @@ int ark_Array_capacity(ark_Array* arr);
             }\
         }\
     } while (0)
+
+
+//                  -- RingBuffer --
+
+typedef struct ark_RingBuffer ark_RingBuffer;
+
+
+ark_RingBuffer* ark_RingBuffer_create(int sizeof_obj , int capacity);
+void ark_RingBuffer_push(ark_RingBuffer* rb , void* src);
+void ark_RingBuffer_pop(ark_RingBuffer* rb);
+void ark_RingBuffer_destroy(ark_RingBuffer* rb);
+
+void* ark_RingBuffer_front(ark_RingBuffer* rb);
+int ark_RingBuffer_capacity(ark_RingBuffer* rb);
+int ark_RingBuffer_size(ark_RingBuffer* rb);
+int ark_RingBuffer_isFull(ark_RingBuffer* rb);
+int ark_RingBuffer_isEmpty(ark_RingBuffer* rb);
+
+void _ark_RingBuffer_debug(ark_RingBuffer* rb);
+
+#define ark_CircularBuffer ark_RingBuffer
+#define ark_RingBuffer_peek ark_RingBuffer_front
+#define ark_RingBuffer_head ark_RingBuffer_front
+#define ark_RingBuffer_top ark_RingBuffer_front
 
 
 //                  -- Vector --
@@ -72,17 +108,17 @@ typedef enum
 
 typedef struct ark_Pair ark_Pair;
 
-// it is recommended to use struct or your own object instead of using pair
-ark_Pair* ark_Pair_create(int sizeof_first_item , int sizeof_second_item);
-void ark_Pair_push(ark_Pair* p , void* first_item , void* second_item);
-void ark_Pair_pop(ark_Pair* p);
-void ark_Pair_shrink(ark_Pair* p);
-void ark_Pair_destroy(ark_Pair* p);
+ARK_ATTRIB_DEPRECATED ark_Pair* ark_Pair_create(int sizeof_first_item , int sizeof_second_item);
+ARK_ATTRIB_DEPRECATED void ark_Pair_push(ark_Pair* p , void* first_item , void* second_item);
+ARK_ATTRIB_DEPRECATED void ark_Pair_pop(ark_Pair* p);
+ARK_ATTRIB_DEPRECATED void ark_Pair_shrink(ark_Pair* p);
+ARK_ATTRIB_DEPRECATED void ark_Pair_destroy(ark_Pair* p);
 
-void* ark_Pair_at(ark_Pair* p , int index , ark_PairFlag flag);
-int ark_Pair_length(ark_Pair* p);
-int ark_Pair_size(ark_Pair* p);
-int ark_Pair_capacity(ark_Pair* p);
+ARK_ATTRIB_DEPRECATED void* ark_Pair_at(ark_Pair* p , int index , ark_PairFlag flag);
+ARK_ATTRIB_DEPRECATED int ark_Pair_length(ark_Pair* p);
+ARK_ATTRIB_DEPRECATED int ark_Pair_size(ark_Pair* p);
+ARK_ATTRIB_DEPRECATED int ark_Pair_capacity(ark_Pair* p);
+
 
 //                  -- LinkedList and Nodes --
 
@@ -124,6 +160,7 @@ void* ark_Stack_top(ark_Stack* stack);
 int ark_Stack_size(ark_Stack* stack);
 bool ark_Stack_isEmpty(ark_Stack* stack);
 
+
 //                  -- Queue
 
 typedef struct ark_Queue ark_Queue;
@@ -136,6 +173,7 @@ void ark_Queue_destory(ark_Queue* q);
 void* ark_Queue_front(ark_Queue* q);
 bool ark_Queue_isEmpty(ark_Queue* q);
 int ark_Queue_size(ark_Queue* q);
+
 
 //                  -- Hashmap --
 
@@ -151,6 +189,7 @@ void ark_Hashmap_destroy(ark_Hashmap* hm);
 void* ark_Hashmap_get(ark_Hashmap* hm , const char* key);
 
 void _ark_Hashmap_debug(ark_Hashmap* hm);
+
 
 //                  -- Gapbuffer --
 
@@ -170,6 +209,7 @@ int ark_Gapbuffer_getGapEnd(ark_Gapbuffer* gb);
 bool ark_Gapbuffer_isFull(ark_Gapbuffer* gb);
 
 void ark_Gapbuffer_info(ark_Gapbuffer* gb);
+
 
 /**                 -- Log --
  * 
@@ -241,12 +281,12 @@ void ark_MemoryManager_destroy(ark_MemoryManager* mem_manager);
  * 
  */
 
-#define ARK_ASSERT(cond , msg)                              \
+#define ARK_ASSERT(cond)                                    \
     do                                                      \
     {                                                       \
         if (!(cond))                                        \
         {                                                   \
-            fprintf(stdout , "%s   %s\n" , #cond , msg);    \
+            fprintf(stdout , "%s   failed\n" , #cond);      \
             abort();                                        \
         }                                                   \
     }                                                       \
